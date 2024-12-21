@@ -1,44 +1,37 @@
 
-Assembly Language Grammar Documentation
-Introduction
+***
+
+# Assembly Language Grammar Documentation
+
+## Introduction
 
 This document describes an enhanced assembly language designed for OS development and other performance-critical applications. It aims to improve upon traditional assembly languages by incorporating features that enhance readability, maintainability, and safety while retaining the low-level control and zero-overhead characteristics of assembly.
 
-Key Features and Benefits
+## Key Features and Benefits
 
 This assembly language offers several advantages over conventional assembly languages:
 
-Zero-Overhead Abstraction: The language is designed to compile directly into efficient machine code with no hidden overhead from the compiler. All operations and memory accesses are explicit, giving the programmer complete control.
+*   **Zero-Overhead Abstraction:** The language is designed to compile directly into efficient machine code with no hidden overhead from the compiler. All operations and memory accesses are explicit, giving the programmer complete control.
+*   **Modularity:** Supports modules (`::module_name:`) and imports (`:import :other_module:`) for better code organization, reusability, and separate compilation.
+*   **Strong Typing:** Features a rich type system, including basic types (`u8`, `i8`, `u16`, `i16`, `u32`, `i32`, `u64`, `i64`, `f32`, `f64`, `ptr`, `void`), user-defined `struct` and `union` types, pointers (`type*`), and arrays (`type[size]`).
+*   **Bitfields:** Allows defining bitfields within `struct`s, providing fine-grained control over memory layout and enabling easy manipulation of hardware registers.
+*   **Enhanced Control Flow:** Includes `if-else` statements, `while` loops, `do-while` loops, and `switch` statements for more structured and readable code compared to traditional jump-based control flow.
+*   **Memory Safety Features:**
+    *   Explicit memory access through the `memory` operand, making it easier to track and reason about memory operations.
+    *   Type specifiers in memory operands (e.g., `[u32:%r0]`) to ensure correct data access.
+    *   Assembler-enforced type checking to reduce type errors.
+*   **Macros:** Supports parameterized macros with typed arguments, enabling code reuse and abstraction.
+*   **Conditional Assembly:**  Includes preprocessor directives (`#if`, `#ifdef`, `#ifndef`, `#elif`, `#else`, `#endif`) for conditional code compilation, making it easier to write portable and configurable assembly code.
+*   **Namespaces:** Modules provide namespaces, preventing naming conflicts in larger projects.
+*   **Readability:** Uses a more modern syntax (e.g., `operand = expression` for assignments) that is more intuitive and easier to read than traditional assembly mnemonics.
 
-Modularity: Supports modules (::module_name:) and imports (:import :other_module:) for better code organization, reusability, and separate compilation.
+## Language Overview
 
-Strong Typing: Features a rich type system, including basic types (u8, i8, u16, i16, u32, i32, u64, i64, f32, f64, ptr, void), user-defined struct and union types, pointers (type*), and arrays (type[size]).
-
-Bitfields: Allows defining bitfields within structs, providing fine-grained control over memory layout and enabling easy manipulation of hardware registers.
-
-Enhanced Control Flow: Includes if-else statements, while loops, do-while loops, and switch statements for more structured and readable code compared to traditional jump-based control flow.
-
-Memory Safety Features:
-
-Explicit memory access through the memory operand, making it easier to track and reason about memory operations.
-
-Type specifiers in memory operands (e.g., [u32:%r0]) to ensure correct data access.
-
-Assembler-enforced type checking to reduce type errors.
-
-Macros: Supports parameterized macros with typed arguments, enabling code reuse and abstraction.
-
-Conditional Assembly: Includes preprocessor directives (#if, #ifdef, #ifndef, #elif, #else, #endif) for conditional code compilation, making it easier to write portable and configurable assembly code.
-
-Namespaces: Modules provide namespaces, preventing naming conflicts in larger projects.
-
-Readability: Uses a more modern syntax (e.g., operand = expression for assignments) that is more intuitive and easier to read than traditional assembly mnemonics.
-
-Language Overview
-Program Structure
+### Program Structure
 
 An assembly program consists of one or more modules. Each module can contain sections, declarations, and statements.
 
+```assembly
 ::module_a:
 
 .code
@@ -52,95 +45,65 @@ An assembly program consists of one or more modules. Each module can contain sec
   ; Data goes here
 
 ::
-content_copy
-download
-Use code with caution.
-Assembly
-Sections
+```
 
-.code: Contains executable code.
+### Sections
 
-.data: Contains initialized data.
+*   `.code`: Contains executable code.
+*   `.data`: Contains initialized data.
+*   `.rodata`: Contains read-only data.
+*   `.bss`: Contains uninitialized data.
 
-.rodata: Contains read-only data.
+### Declarations
 
-.bss: Contains uninitialized data.
+*   **Labels:** `identifier:`
+*   **Types:** `@identifier = type_specifier;`
+*   **Constants:** `#identifier = expression;`
+*   **Data:** `[&] identifier: type_specifier [(: bitfield_size) | ( "[" [positive_integer_literal] "]" )] [= initializer] [,];`
 
-Declarations
+### Statements
 
-Labels: identifier:
+*   **Assignment:** `operand = expression;`
+*   **Jump:** `je`, `jne`, `jl`, `jg`, `jle`, `jge`, `jmp`
+*   **Call:** `[operand =] identifier([expression {, expression}]);`
+*   **Return:** `ret [expression];`
+*   **Privileged:** `~privileged_instruction [operand {, operand}];`
+*   **Loops:** `loop`, `while`, `do-while`
+*   **If-Else:** `if comparison_expression statement [else statement]`
+*   **Switch:** `switch (expression) { case immediate: statement [break] ... [default: statement] }`
+*   **Floating-Point:** `floating_point_mnemonic [operand {, operand}];`
+*   **Assembly Instruction:** `instruction_mnemonic [operand {, operand}];`
+*   **Macro Call** `!` `identifier` `(` `typed_arg` `{` `,` `typed_arg` `}` `)`
+*   **Comment:** `// ...` or `/* ... */`
 
-Types: @identifier = type_specifier;
+### Operands
 
-Constants: #identifier = expression;
+*   **Registers:** `%r0` - `%r15`, `%f0` - `%f15`, `%sp`, `%bp`, `%err` (architecture-specific)
+*   **Memory:** `[ [memory_segment:] (type_specifier | "&"): (register | (register [pointer_op expression]) | label | indexed_addressing) ]`
+*   **Labels:** `identifier`
+*   **Struct Members:** `operand.identifier[:bitfield_size]`
 
-Data: [&] identifier: type_specifier [(: bitfield_size) | ( "[" [positive_integer_literal] "]" )] [= initializer] [,];
+### Expressions
 
-Statements
+*   **Operands**
+*   **Immediate Values:** Integer, character, string, or float literals.
+*   **Unary Operators:** `-`, `!`, `~`
+*   **Binary Operators:** `+`, `-`, `*`, `/`, `%`, `&`, `|`, `^`, `<<`, `>>`
+*   **Comparison Operators:** `==`, `!=`, `<`, `>`, `<=`, `>=`
+*   **Function Calls**
 
-Assignment: operand = expression;
+### Directives
 
-Jump: je, jne, jl, jg, jle, jge, jmp
+*   **.align:** `.align unsigned_integer_literal`
+*   **.global:** `.global identifier`
+*   **.extern:** `.extern identifier`
+*   **.endian:** `.endian (little | big)`
+*   **Conditional Assembly:** `#if`, `#ifdef`, `#ifndef`, `#elif`, `#else`, `#endif`
+*   **.macro** and **.endm**
 
-Call: [operand =] identifier([expression {, expression}]);
+## EBNF Grammar
 
-Return: ret [expression];
-
-Privileged: ~privileged_instruction [operand {, operand}];
-
-Loops: loop, while, do-while
-
-If-Else: if comparison_expression statement [else statement]
-
-Switch: switch (expression) { case immediate: statement [break] ... [default: statement] }
-
-Floating-Point: floating_point_mnemonic [operand {, operand}];
-
-Assembly Instruction: instruction_mnemonic [operand {, operand}];
-
-Macro Call ! identifier ( typed_arg { , typed_arg } )
-
-Comment: // ... or /* ... */
-
-Operands
-
-Registers: %r0 - %r15, %f0 - %f15, %sp, %bp, %err (architecture-specific)
-
-Memory: [ [memory_segment:] (type_specifier | "&"): (register | (register [pointer_op expression]) | label | indexed_addressing) ]
-
-Labels: identifier
-
-Struct Members: operand.identifier[:bitfield_size]
-
-Expressions
-
-Operands
-
-Immediate Values: Integer, character, string, or float literals.
-
-Unary Operators: -, !, ~
-
-Binary Operators: +, -, *, /, %, &, |, ^, <<, >>
-
-Comparison Operators: ==, !=, <, >, <=, >=
-
-Function Calls
-
-Directives
-
-.align: .align unsigned_integer_literal
-
-.global: .global identifier
-
-.extern: .extern identifier
-
-.endian: .endian (little | big)
-
-Conditional Assembly: #if, #ifdef, #ifndef, #elif, #else, #endif
-
-.macro and .endm
-
-EBNF Grammar
+```ebnf
 (* =================================================== *)
 (*  Complete Assembly Language Grammar (Zero-Overhead, No _, Bitfields, Refinements)  *)
 (* =================================================== *)
@@ -309,11 +272,11 @@ any_character_except_quote = [^"'"] ;
 any_character_except_doublequote = [^'"'];
 any_character = /* ASCII 0x00 - 0x7F */;
 newline = /* 0x0A | 0x0D 0x0A */;
-content_copy
-download
-Use code with caution.
-Ebnf
-Example Program
+```
+
+## Example Program
+
+```assembly
 ::my_module: :io:
 
 .code
@@ -388,10 +351,10 @@ main:
 &buffer: u8[128]
 
 ::
-content_copy
-download
-Use code with caution.
-Assembly
-Conclusion
+```
+
+## Conclusion
 
 This documentation provides a comprehensive overview of the enhanced assembly language grammar. By combining the readability and safety features with the low-level control of assembly, this language aims to be a powerful tool for OS development and other performance-sensitive applications. The EBNF grammar provides a precise specification for building an assembler, and the example program demonstrates the language's capabilities. Remember to fill in the architecture-specific details and implement the necessary assembler components (instruction encoding, macro expansion, type checking, error handling) to bring this language to life.
+***
+
